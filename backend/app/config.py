@@ -47,7 +47,7 @@ class Settings:
 
     # --- Translasi (OmniRoute / OpenAI-compatible) ---
     omniroute_base_url: str = field(default_factory=lambda: _str(
-        "OMNIROUTE_BASE_URL", "https://omniroute.wawunime.my.id/v1").rstrip("/"))
+        "OMNIROUTE_BASE_URL", "http://localhost:20128/v1").rstrip("/"))
     omniroute_api_key: str = field(default_factory=lambda: _str("OMNIROUTE_API_KEY"))
     translate_model: str = field(default_factory=lambda: _str("TRANSLATE_MODEL", "atria/Atria-Dawn-Preview"))
     translate_model_fallback: str = field(default_factory=lambda: _str("TRANSLATE_MODEL_FALLBACK"))
