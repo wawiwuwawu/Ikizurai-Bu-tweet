@@ -32,3 +32,4 @@ backend/tools/_*
 
 # dataset sementara (atomic write)
 dataset/**/*.tmp
+ops/publish.log

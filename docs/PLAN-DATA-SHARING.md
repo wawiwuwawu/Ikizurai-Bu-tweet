@@ -119,3 +119,23 @@ python -m tools.seed --from-jsonl data/tweets/    # isi DB + terjemahan, tanpa p
 - Bot tetap jalan di server rumah (Docker, port 8097) — Pages hanya *cermin* data.
 - Database tetap SQLite sebagai satu-satunya sumber kebenaran; JSONL = hasil ekspor.
 - Notifikasi Discord tetap dari bot.
+
+---
+
+## 6. STATUS: SUDAH DIEKSEKUSI (2026-09-21)
+
+Keputusan user: **pakai JSON**, **tanpa DISCLAIMER.md** (catatan sumber + AI ditaruh di README), server rumah **tidak** dibuka ke publik.
+
+| Fase | Status | Bukti |
+|---|---|---|
+| 1. Export (`app/export.py` + `--export` + `EXPORT_ON_CYCLE`) | ✅ | 2463 tweet / 13 bulan / 1,4 MB; 7 tes baru (61 total) |
+| 2. Auto-publish (`ops/publish.sh` + cron harian 23:30 WIB) | ✅ | hanya commit bila isi berubah; SSH non-interaktif terverifikasi |
+| 3. Pages viewer (`VITE_DATA_MODE=static` + `pages.yml`) | ✅ | live: https://wawiwuwawu.github.io/Ikizurai-Bu-tweet/ — 30 kartu, filter, search, infinite scroll (30→90) terverifikasi di browser |
+| 4. DB di Releases | ⏸️ | sengaja ditunda (JSON sudah cukup untuk semua keperluan) |
+| 5. Dokumentasi | ✅ | README: bagian "Tentang data & terjemahan" + "Dataset publik" |
+
+**Temuan bonus (bug diperbaiki):** kursor pagination API memakai baris intip (ke-`limit+1`) → **1 tweet hilang di setiap batas halaman**. Diperbaiki di `db.query_tweets` + tes regresi; diverifikasi di viewer live (90 kartu, timestamp turun mulus tanpa lompatan).
+
+**Catatan operasional:**
+- Siklus worker bisa berjalan >20 menit (60 batch translasi + retry) → ekspor mengikuti akhir siklus, bukan tiap 10 menit.
+- Dataset ditulis **root** (dari container) → publikasi harus jalan di host sebagai user pemilik repo (`ops/publish.sh` via cron).
