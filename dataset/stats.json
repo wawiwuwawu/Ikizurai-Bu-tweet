@@ -1,12 +1,12 @@
 {
  "total": 2463,
- "translated": 1962,
+ "translated": 2255,
  "notified": 4,
  "pending_notify": 0,
  "oldest": "2025-03-14T12:56:00.000Z",
  "newest": "2026-09-18T12:25:00.000Z",
- "last_check": "2026-09-21T17:55:12Z",
+ "last_check": "2026-09-21T18:17:08Z",
  "baseline_done": "true",
- "generated_at": "2026-09-21T18:15:02Z",
+ "generated_at": "2026-09-21T18:30:01Z",
  "source": "https://gsm-app.com/lovelive/ikizulive-x-archive/"
 }

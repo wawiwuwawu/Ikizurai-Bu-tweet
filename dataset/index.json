@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-09-21T18:15:02Z",
+ "generated_at": "2026-09-21T18:30:01Z",
  "total": 2463,
- "translated": 1962,
+ "translated": 2255,
  "months": [
   {
    "month": "2025-03",
@@ -19,19 +19,19 @@
    "month": "2025-05",
    "file": "tweets/2025-05.jsonl",
    "count": 165,
-   "translated": 0
+   "translated": 96
   },
   {
    "month": "2025-06",
    "file": "tweets/2025-06.jsonl",
    "count": 195,
-   "translated": 0
+   "translated": 195
   },
   {
    "month": "2025-07",
    "file": "tweets/2025-07.jsonl",
    "count": 221,
-   "translated": 219
+   "translated": 221
   },
   {
    "month": "2025-08",
