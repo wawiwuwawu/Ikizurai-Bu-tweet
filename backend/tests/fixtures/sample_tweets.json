@@ -1,0 +1,258 @@
+[
+ {
+  "__typename": "Tweet",
+  "lang": "ja",
+  "favorite_count": 2090,
+  "created_at": "2025-03-14T12:56:00.000Z",
+  "display_text_range": [
+   0,
+   29
+  ],
+  "entities": {
+   "hashtags": [],
+   "urls": [],
+   "user_mentions": [],
+   "symbols": []
+  },
+  "id_str": "1900531357174128835",
+  "text": "どうしよう\n\n高校落ちた\n\nどうしようどうしようどうしよう",
+  "user": {
+   "id_str": "1884116039795195904",
+   "name": "高橋ポルカ@いきづらい部！",
+   "screen_name": "polka_lion",
+   "is_blue_verified": true,
+   "profile_image_shape": "Circle",
+   "verified": false,
+   "profile_image_url_https": "https://pbs.twimg.com/profile_images/1921886430265221121/uOWsSYJW_normal.png"
+  },
+  "edit_control": {
+   "edit_tweet_ids": [
+    "1900531357174128835"
+   ],
+   "editable_until_msecs": "1741960560000",
+   "is_edit_eligible": true,
+   "edits_remaining": "5"
+  },
+  "conversation_count": 46,
+  "news_action_type": "conversation",
+  "isEdited": false,
+  "isStaleEdit": false
+ },
+ {
+  "__typename": "Tweet",
+  "lang": "ja",
+  "favorite_count": 473,
+  "created_at": "2025-04-01T05:32:00.000Z",
+  "display_text_range": [
+   0,
+   108
+  ],
+  "entities": {
+   "hashtags": [],
+   "urls": [],
+   "user_mentions": [],
+   "symbols": []
+  },
+  "id_str": "1906942602261446962",
+  "text": "どうしよう\n妹が勝手に応募したアイドルオーディションに受かっちゃったーー\n\nっていうのはエイプリルフールの嘘\n\nありえないでしょ、そんなの💢\nていうか無断で応募って、たとえ姉妹でも個人情報アウト！\nお仕置きだな👍",
+  "user": {
+   "id_str": "1906615972401909760",
+   "name": "麻布麻衣@いきづらい部！",
+   "screen_name": "My_Mai_Eld",
+   "is_blue_verified": true,
+   "profile_image_shape": "Circle",
+   "verified": false,
+   "profile_image_url_https": "https://pbs.twimg.com/profile_images/1921886467275841537/vdo1D8GJ_normal.png"
+  },
+  "edit_control": {
+   "edit_tweet_ids": [
+    "1906942602261446962"
+   ],
+   "editable_until_msecs": "1743489120000",
+   "is_edit_eligible": true,
+   "edits_remaining": "5"
+  },
+  "conversation_count": 1,
+  "news_action_type": "conversation",
+  "isEdited": false,
+  "isStaleEdit": false
+ },
+ {
+  "__typename": "Tweet",
+  "lang": "ja",
+  "favorite_count": 3188,
+  "possibly_sensitive": false,
+  "created_at": "2025-12-22T08:00:30.000Z",
+  "display_text_range": [
+   0,
+   15
+  ],
+  "entities": {
+   "hashtags": [
+    {
+     "indices": [
+      8,
+      15
+     ],
+     "text": "いきづらい部"
+    }
+   ],
+   "urls": [],
+   "user_mentions": [],
+   "symbols": [],
+   "media": [
+    {
+     "display_url": "pic.x.com/GNHGLqEoG1",
+     "expanded_url": "https://x.com/polka_lion/status/2003012758007423271/photo/1",
+     "indices": [
+      16,
+      39
+     ],
+     "url": "https://t.co/GNHGLqEoG1"
+    }
+   ]
+  },
+  "id_str": "2003012758007423271",
+  "text": "L高最高！！！\n#いきづらい部 https://t.co/GNHGLqEoG1",
+  "user": {
+   "id_str": "1884116039795195904",
+   "name": "高橋ポルカ@いきづらい部！",
+   "screen_name": "polka_lion",
+   "is_blue_verified": true,
+   "profile_image_shape": "Circle",
+   "verified": false,
+   "profile_image_url_https": "https://pbs.twimg.com/profile_images/1921886430265221121/uOWsSYJW_normal.png"
+  },
+  "edit_control": {
+   "edit_tweet_ids": [
+    "2003012758007423271"
+   ],
+   "editable_until_msecs": "1766394030000",
+   "is_edit_eligible": true,
+   "edits_remaining": "5"
+  },
+  "mediaDetails": [
+   {
+    "display_url": "pic.x.com/GNHGLqEoG1",
+    "expanded_url": "https://x.com/polka_lion/status/2003012758007423271/photo/1",
+    "ext_media_availability": {
+     "status": "Available"
+    },
+    "indices": [
+     16,
+     39
+    ],
+    "media_url_https": "https://pbs.twimg.com/media/G8wY1l-bwAAMPp1.jpg",
+    "original_info": {
+     "height": 871,
+     "width": 1200,
+     "focus_rects": [
+      {
+       "x": 0,
+       "y": 0,
+       "w": 1200,
+       "h": 672
+      },
+      {
+       "x": 329,
+       "y": 0,
+       "w": 871,
+       "h": 871
+      },
+      {
+       "x": 436,
+       "y": 0,
+       "w": 764,
+       "h": 871
+      },
+      {
+       "x": 712,
+       "y": 0,
+       "w": 436,
+       "h": 871
+      },
+      {
+       "x": 0,
+       "y": 0,
+       "w": 1200,
+       "h": 871
+      }
+     ]
+    },
+    "sizes": {
+     "large": {
+      "h": 871,
+      "resize": "fit",
+      "w": 1200
+     },
+     "medium": {
+      "h": 871,
+      "resize": "fit",
+      "w": 1200
+     },
+     "small": {
+      "h": 494,
+      "resize": "fit",
+      "w": 680
+     },
+     "thumb": {
+      "h": 150,
+      "resize": "crop",
+      "w": 150
+     }
+    },
+    "type": "photo",
+    "url": "https://t.co/GNHGLqEoG1"
+   }
+  ],
+  "photos": [
+   {
+    "backgroundColor": {
+     "red": 204,
+     "green": 214,
+     "blue": 221
+    },
+    "cropCandidates": [
+     {
+      "x": 0,
+      "y": 0,
+      "w": 1200,
+      "h": 672
+     },
+     {
+      "x": 329,
+      "y": 0,
+      "w": 871,
+      "h": 871
+     },
+     {
+      "x": 436,
+      "y": 0,
+      "w": 764,
+      "h": 871
+     },
+     {
+      "x": 712,
+      "y": 0,
+      "w": 436,
+      "h": 871
+     },
+     {
+      "x": 0,
+      "y": 0,
+      "w": 1200,
+      "h": 871
+     }
+    ],
+    "expandedUrl": "https://x.com/polka_lion/status/2003012758007423271/photo/1",
+    "url": "https://pbs.twimg.com/media/G8wY1l-bwAAMPp1.jpg",
+    "width": 1200,
+    "height": 871
+   }
+  ],
+  "conversation_count": 10,
+  "news_action_type": "conversation",
+  "isEdited": false,
+  "isStaleEdit": false
+ }
+]

@@ -1,0 +1,13 @@
+.dockerignore
+.git
+.gitignore
+frontend/node_modules
+frontend/dist
+backend/.venv
+backend/data
+data
+**/__pycache__
+**/*.pyc
+*.log
+.env
+research

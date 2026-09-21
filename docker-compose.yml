@@ -1,0 +1,17 @@
+services:
+  ikizurai-bu-tweet:
+    build: .
+    image: ikizurai-bu-tweet:latest
+    container_name: ikizurai-bu-tweet
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8097:8097"
+    volumes:
+      - ./data:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
