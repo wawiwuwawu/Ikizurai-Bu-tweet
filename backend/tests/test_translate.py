@@ -40,6 +40,18 @@ def test_parse_json_rusak():
     assert parse_batch_json("", IDS) == {}
 
 
+def test_parse_json_terpotong_di_tengah_diselamatkan_sebagian():
+    # model berhenti di tengah string → array tidak valid, tapi objek pertama lengkap
+    content = '[{"id":"111","id_text":"satu"},{"id":"222","id_text":"dua yang terpot'
+    assert parse_batch_json(content, IDS) == {"111": "satu"}
+
+
+def test_parse_json_salvage_dengan_escape_newline():
+    content = '[{"id":"111","id_text":"baris satu\\n\\nbaris dua"},{"id":"222","id_text":"terpot'
+    out = parse_batch_json(content, IDS)
+    assert out == {"111": "baris satu\n\nbaris dua"}
+
+
 def test_build_messages_konten():
     msgs = build_messages([{"id_str": "111", "text": "こんにちは"}])
     assert msgs[0]["role"] == "system" and msgs[0]["content"] == SYSTEM_PROMPT

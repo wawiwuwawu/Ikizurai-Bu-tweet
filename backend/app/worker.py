@@ -220,6 +220,8 @@ def _cli() -> int:
     parser.add_argument("--notify-dry", type=int, default=0, help="print payload notifikasi utk N tweet (tidak kirim)")
     parser.add_argument("--send", type=int, default=0, help="kirim N notifikasi pending (nyata)")
     parser.add_argument("--stats", action="store_true", help="print statistik DB")
+    parser.add_argument("--reset-translations", action="store_true",
+                        help="hapus semua terjemahan supaya diterjemahkan ulang (mis. setelah ganti prompt)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -237,6 +239,14 @@ def _cli() -> int:
 
     if args.stats:
         print(json.dumps(dbm.stats(conn), ensure_ascii=False, indent=1))
+        return 0
+    if args.reset_translations:
+        n = conn.execute(
+            "UPDATE tweets SET text_id = NULL, translated_at = NULL, "
+            "translate_attempts = 0, next_retry_at = NULL"
+        ).rowcount
+        conn.commit()
+        print(f"{n} terjemahan direset — worker akan menerjemahkan ulang dengan prompt terbaru.")
         return 0
     if args.backfill:
         worker.backfill()

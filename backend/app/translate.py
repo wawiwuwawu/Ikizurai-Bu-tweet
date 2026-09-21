@@ -17,17 +17,28 @@ import requests
 
 log = logging.getLogger("ikizurai.translate")
 
-SYSTEM_PROMPT = """Kamu penerjemah profesional Jepang→Indonesia untuk konten anime (Love Live! Bluebird / イキヅライブ！).
-Terjemahkan tweet akun karakter (cewek SMA) ke bahasa Indonesia yang natural, hidup, dan santai seperti orang Indonesia asli menulis di media sosial. Pakai "aku/kamu", jangan kaku atau formal.
+SYSTEM_PROMPT = """Kamu penerjemah Jepang→Indonesia untuk tweet akun karakter anime (Love Live! Bluebird / イキヅライブ！).
+Tulis seperti cewek SMA Indonesia nge-tweet: bahasa gaul medsos, akrab, ekspresif, 100% natural — bukan bahasa berita, bukan bahasa buku, bukan terjemahan kaku.
+
+WAJIB: "banget", "udah", "gak/nggak", "nih", "deh", "dong", "sih", "yuk", "aku", "kamu/kalian", "kayak", "emang", "bakal".
+DILARANG kata baku/formal: segenap, sekujur, sekuat tenaga, insiden, merupakan, hingga, guna, demi, hendak, sekalipun, adalah, akan.
+
 Aturan:
-- SEMUA kata harus dalam bahasa Indonesia. Jangan ada kata Inggris tertinggal (kecuali nama merek, judul lagu/acara, atau istilah yang memang tidak punya padanan; tulis nama dalam romaji).
-- Pertahankan semua emoji, kaomoji, tanda baca khas (！！、ーー、～), dan jeda baris kosong antar paragraf.
-- Nama karakter ditulis romaji (contoh: 高橋ポルカ → Takahashi Polka). Hashtag Jepang dibiarkan apa adanya (contoh: #いきづらい部).
-- Jangan tambahkan penjelasan, catatan penerjemah, atau furigana.
+- SEMUA kata dalam bahasa Indonesia. Jangan tinggalkan kata Inggris: stage→panggung, stretching→peregangan, event→acara, spring→musim semi, fail→gagal. Pengecualian hanya untuk istilah yang sudah wajar di medsos Indonesia atau nama merek/judul.
+- Istilah Jepang yang lazim di komunitas anime DIPERTAHANKAN: senpai, omamori, bunkasai, matsuri, yukata, seiyuu, akhiran -chan/-san/-kun.
+- Pertahankan emoji, kaomoji, tanda ！ーー～, dan jeda baris kosong antar paragraf.
+- Nama karakter ditulis romaji (高橋ポルカ → Takahashi Polka). Hashtag Jepang dibiarkan apa adanya.
+- Jangan menambah penjelasan/catatan penerjemah.
+
 Contoh gaya:
 - どうしよう → "Gimana ya…"
-- ありえないでしょ、そんなの💢 → "Nggak mungkin lah, masa gitu💢"
-- とりあえずおなか減ったかも → "Yang jelas, kayaknya aku laper"
+- 全身全霊全力全開で！！！ → "all out sepenuh tenaga!!!"
+- いつも通りお風呂に入ってパックして → "kayak biasa aku mandi terus maskeran"
+- 文化祭まであと1日 → "bunkasai tinggal sehari lagi"
+- ますますパワーアップしちゃう → "makin kece aja dong"
+- アクシデントや思わぬハプニングもつきもの → "hal-hal gak terduga dan kejadian dadakan juga pasti ada"
+- 最高か🥰 → "paling keren sih🥰"
+
 Output HANYA JSON array: [{"id":"<id>","id_text":"<terjemahan>"}]"""
 
 
@@ -44,6 +55,10 @@ def build_messages(tweets: list[dict[str, Any]]) -> list[dict[str, str]]:
 def parse_batch_json(content: str, expected_ids: list[str]) -> dict[str, str]:
     """Parser toleran: strip markdown fence, ambil array JSON pertama-terakhir.
 
+    Ada dua lapis:
+    1. `json.loads` penuh (kasus normal).
+    2. **Salvage**: kalau JSON terpotong/rusak (model berhenti di tengah), ambil
+       objek-objek yang *lengkap* dengan regex — sisanya di-retry terpisah.
     Mengembalikan hanya pasangan id→terjemahan yang valid & id-nya dikenal.
     """
     if not content:
@@ -52,24 +67,42 @@ def parse_batch_json(content: str, expected_ids: list[str]) -> dict[str, str]:
     if s.startswith("```"):
         s = s.split("\n", 1)[1] if "\n" in s else s
         s = s.rsplit("```", 1)[0]
-    i, j = s.find("["), s.rfind("]")
-    if i == -1 or j == -1:
-        return {}
-    try:
-        arr = json.loads(s[i:j + 1])
-    except json.JSONDecodeError:
-        return {}
-    if not isinstance(arr, list):
-        return {}
+
     known = set(expected_ids)
     out: dict[str, str] = {}
-    for item in arr:
-        if not isinstance(item, dict):
+
+    def _collect(arr) -> None:
+        if not isinstance(arr, list):
+            return
+        for item in arr:
+            if not isinstance(item, dict):
+                continue
+            _id = str(item.get("id") or item.get("id_str") or "").strip()
+            txt = item.get("id_text") or item.get("text") or ""
+            if _id in known and isinstance(txt, str) and txt.strip():
+                out[_id] = txt.strip()
+
+    i, j = s.find("["), s.rfind("]")
+    if i != -1 and j != -1:
+        try:
+            _collect(json.loads(s[i:j + 1]))
+        except json.JSONDecodeError:
+            pass
+    if len(out) == len(known):
+        return out
+
+    # Salvage: ambil objek lengkap satu per satu ({"id": "...", "id_text": "..."})
+    for m in re.finditer(
+        r'\{\s*"id"\s*:\s*"(?P<id>\d+)"\s*,\s*"id_text"\s*:\s*"(?P<text>(?:[^"\\]|\\.)*)"\s*\}',
+        s,
+    ):
+        try:
+            text = json.loads(f'"{m.group("text")}"')
+        except json.JSONDecodeError:
             continue
-        _id = str(item.get("id") or item.get("id_str") or "").strip()
-        txt = item.get("id_text") or item.get("text") or ""
-        if _id in known and isinstance(txt, str) and txt.strip():
-            out[_id] = txt.strip()
+        _id = m.group("id")
+        if _id in known and text.strip():
+            out.setdefault(_id, text.strip())
     return out
 
 
@@ -86,7 +119,7 @@ def translate_batch(
     tweets: list[dict[str, Any]],
     reasoning_effort: Optional[str] = None,
     max_tokens: int = 2500,
-    temperature: float = 0.3,
+    temperature: float = 0.4,
     timeout: int = 120,
 ) -> tuple[dict[str, str], Optional[str]]:
     """1 percobaan translasi. Kembalikan (hasil, error_string|None)."""

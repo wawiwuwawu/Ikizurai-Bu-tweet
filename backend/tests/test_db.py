@@ -98,8 +98,25 @@ def test_notifikasi_hanya_setelah_terjemahan(conn):
     dbm.set_translated(conn, iid, "halo")
     rows = dbm.pending_notifications(conn, 10, require_translation=True)
     assert [r["id_str"] for r in rows] == [iid]
+    # avatar harus ikut terambil — dipakai untuk icon_url di embed Discord
+    assert rows[0]["avatar"], "kolom avatar kosong di antrean notifikasi"
+    assert rows[0]["avatar"].endswith("_400x400.png")
+    assert rows[0]["raw"], "kolom raw (fallback avatar) harus tersedia"
     dbm.mark_notified(conn, iid)
     assert dbm.pending_notifications(conn, 10, require_translation=True) == []
+
+
+def test_embed_dari_baris_db_punya_avatar(conn):
+    """Regresi: baris dari pending_notifications harus bisa bikin embed ber-avatar."""
+    from app.notify import build_embed
+
+    items = _items()
+    dbm.upsert_tweets(conn, items)
+    iid = items[0]["id_str"]
+    dbm.set_translated(conn, iid, "halo")
+    row = dbm.pending_notifications(conn, 1, require_translation=True)[0]
+    embed = build_embed(dict(row))
+    assert embed["author"]["icon_url"], "embed tanpa icon_url (avatar member hilang!)"
 
 
 def test_query_tweets_filter_dan_kursor(conn):

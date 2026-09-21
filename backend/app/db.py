@@ -204,7 +204,7 @@ def pending_notifications(conn: sqlite3.Connection, limit: int, require_translat
     cond = "AND text_id IS NOT NULL" if require_translation else ""
     return conn.execute(
         f"""SELECT id_str, member, member_name, created_at, text, text_id, favorite_count,
-                   conversation_count, url, media
+                   conversation_count, url, media, avatar, raw
             FROM tweets
             WHERE notify_state = 'pending' {cond}
             ORDER BY created_at ASC, id_str ASC
