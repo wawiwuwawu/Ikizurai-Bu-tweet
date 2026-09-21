@@ -94,9 +94,9 @@ docker exec ikizurai-bu-tweet python -m app.worker --export   # manual
 ./ops/publish.sh                                              # commit + push ke GitHub
 ```
 
-> Commit otomatis: `ops/publish.sh` hanya membuat commit bila isi dataset berubah (diff-friendly, tanpa commit kosong).
-> Dijalankan cron tiap 15 menit lewat `ops/publish-when-complete.sh` — skrip itu menunggu sampai backfill
-> translasi tuntas (translated == total) sebelum publish pertama, lalu menjaga mirror tetap segar.
+> **Otomatis**: cron menjalankan `ops/publish.sh` tiap 15 menit. Skrip itu (1) menyegarkan ekspor dari
+> container dulu, lalu (2) commit + push **hanya bila isi dataset berubah** (tanpa commit kosong).
+> Jadi mirror GitHub/Pages selalu mengikuti kondisi terbaru tanpa menunggu.
 
 ## 🚀 Quick Start (Docker)
 

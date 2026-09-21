@@ -12,8 +12,19 @@ cd "$(dirname "$0")/.."
 REPO_DIR="$(pwd)"
 DRY_RUN=0
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
+CONTAINER="${CONTAINER:-ikizurai-bu-tweet}"
 
 log() { printf '[publish] %s\n' "$*"; }
+
+# 0) segarkan ekspor dari bot dulu (kalau container jalan) — supaya yang
+#    di-publish selalu kondisi terkini, tidak menunggu akhir siklus worker.
+if [[ $DRY_RUN -eq 0 ]] && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER"; then
+  if docker exec "$CONTAINER" python -m app.worker --export >/dev/null 2>&1; then
+    log "ekspor disegarkan dari container $CONTAINER"
+  else
+    log "PERINGATAN: ekspor di container gagal — memakai dataset yang ada"
+  fi
+fi
 
 if [[ ! -d dataset ]]; then
   log "ERROR: folder dataset/ tidak ada — jalankan ekspor dulu (docker exec ikizurai-bu-tweet python -m app.worker --export)"
