@@ -204,10 +204,19 @@ class Worker:
         # 2) lanjutkan backfill translasi arsip (tidak memblokir notifikasi berikutnya)
         translated_backfill = self.translate_cycle(only_pending=False)
 
+        # 3) ekspor dataset publik (JSON) — biar siap di-commit/dipublikasikan
+        exported = None
+        if self.s.export_on_cycle:
+            try:
+                exported = _do_export(self.s, self.conn)
+            except Exception as e:  # noqa: BLE001 — ekspor gagal jangan matikan siklus
+                log.exception("Ekspor dataset gagal: %s", e)
+
         return {
             "translated_priority": translated_priority,
             "translated_backfill": translated_backfill,
             "notified": notified,
+            "exported": exported,
             "stats": dbm.stats(self.conn),
         }
 
@@ -227,9 +236,18 @@ class Worker:
 
 # ---------------------------------------------------------------- CLI
 
+def _do_export(settings: Any, conn) -> dict[str, Any]:
+    """Ekspor DB → dataset JSON publik."""
+    from . import export as ex
+
+    return ex.export_all(conn, settings.export_dir)
+
+
 def _cli() -> int:
     parser = argparse.ArgumentParser(description="Ikizurai-Bu tweet worker")
     parser.add_argument("--once", action="store_true", help="jalankan 1 siklus lalu keluar")
+    parser.add_argument("--export", action="store_true",
+                        help="ekspor dataset publik (dataset/*.jsonl) lalu keluar")
     parser.add_argument("--backfill", action="store_true", help="paksa backfill penuh (baseline)")
     parser.add_argument("--translate-n", type=int, default=0, help="terjemahkan N tweet dari antrean lalu keluar")
     parser.add_argument("--notify-dry", type=int, default=0, help="print payload notifikasi utk N tweet (tidak kirim)")
@@ -254,6 +272,9 @@ def _cli() -> int:
 
     if args.stats:
         print(json.dumps(dbm.stats(conn), ensure_ascii=False, indent=1))
+        return 0
+    if args.export:
+        print(json.dumps(_do_export(settings, conn), ensure_ascii=False, indent=1))
         return 0
     if args.reset_translations:
         n = conn.execute(

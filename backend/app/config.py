@@ -60,6 +60,11 @@ class Settings:
     translate_retry_backoff_max: int = field(default_factory=lambda: _int("TRANSLATE_RETRY_BACKOFF_MAX", 900))
     translate_paused: bool = field(default_factory=lambda: _bool("TRANSLATE_PAUSED", False))
 
+    # --- Ekspor dataset publik (JSON untuk GitHub Pages / dipakai ulang) ---
+    export_dir: str = field(default_factory=lambda: _str(
+        "EXPORT_DIR", str(BASE_DIR.parent / "dataset")))
+    export_on_cycle: bool = field(default_factory=lambda: _bool("EXPORT_ON_CYCLE", True))
+
     # --- Web / runtime ---
     db_path: str = field(default_factory=lambda: _str("DB_PATH", str(BASE_DIR / "data" / "archive.db")))
     port: int = field(default_factory=lambda: _int("PORT", 8097))

@@ -156,3 +156,29 @@ def test_meta_roundtrip(conn):
     dbm.set_meta(conn, "baseline_done", "true")
     assert dbm.get_meta(conn, "baseline_done") == "true"
     assert dbm.get_meta(conn, "tidak_ada", "fallback") == "fallback"
+
+
+def test_pagination_tidak_kehilangan_tweet(conn):
+    """Regresi: kursor halaman harus id baris terakhir yang dikembalikan.
+
+    Bug lama: next_before = baris intip (ke-limit+1) → 1 tweet hilang di tiap
+    batas halaman saat FE melanjutkan dengan `before=next_before`.
+    """
+    items = _items()
+    dbm.upsert_tweets(conn, items)
+
+    limit = 4
+    seen: list[str] = []
+    before = None
+    for _ in range(50):  # batas aman
+        rows, before = dbm.query_tweets(conn, before=before, limit=limit)
+        if not rows:
+            break
+        seen.extend(r["id_str"] for r in rows)
+        if before is None:
+            break
+
+    semua = [r["id_str"] for r in dbm.query_tweets(conn, limit=10_000)[0]]
+    assert seen == semua                     # lengkap, tanpa duplikat, urutan sama
+    assert len(seen) == len(set(seen))
+    assert len(seen) == len(items)

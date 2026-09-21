@@ -29,3 +29,6 @@ research/
 
 # artefak dev sementara
 backend/tools/_*
+
+# dataset sementara (atomic write)
+dataset/**/*.tmp

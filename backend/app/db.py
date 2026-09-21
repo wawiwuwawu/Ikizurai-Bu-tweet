@@ -270,8 +270,12 @@ def query_tweets(
     sql += " ORDER BY created_at DESC, id_str DESC LIMIT ?"
     args.append(limit + 1)
     rows = conn.execute(sql, args).fetchall()
-    next_before = rows[-1]["id_str"] if len(rows) > limit else None
-    return rows[:limit], next_before
+    # Kursor = id baris TERAKHIR YANG DIKEMBALIKAN (eksklusif), bukan baris intip.
+    # Kalau pakai rows[-1] (baris ke-limit+1), tweet itu akan hilang di halaman berikutnya.
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    next_before = rows[-1]["id_str"] if (has_more and rows) else None
+    return rows, next_before
 
 
 def stats(conn: sqlite3.Connection) -> dict[str, Any]:

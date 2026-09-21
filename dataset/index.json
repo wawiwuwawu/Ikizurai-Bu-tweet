@@ -1,0 +1,85 @@
+{
+ "generated_at": "2026-09-21T16:35:34Z",
+ "total": 2463,
+ "translated": 477,
+ "months": [
+  {
+   "month": "2025-03",
+   "file": "tweets/2025-03.jsonl",
+   "count": 20,
+   "translated": 0
+  },
+  {
+   "month": "2025-04",
+   "file": "tweets/2025-04.jsonl",
+   "count": 119,
+   "translated": 0
+  },
+  {
+   "month": "2025-05",
+   "file": "tweets/2025-05.jsonl",
+   "count": 165,
+   "translated": 0
+  },
+  {
+   "month": "2025-06",
+   "file": "tweets/2025-06.jsonl",
+   "count": 195,
+   "translated": 0
+  },
+  {
+   "month": "2025-07",
+   "file": "tweets/2025-07.jsonl",
+   "count": 221,
+   "translated": 0
+  },
+  {
+   "month": "2025-08",
+   "file": "tweets/2025-08.jsonl",
+   "count": 235,
+   "translated": 0
+  },
+  {
+   "month": "2025-09",
+   "file": "tweets/2025-09.jsonl",
+   "count": 189,
+   "translated": 0
+  },
+  {
+   "month": "2025-10",
+   "file": "tweets/2025-10.jsonl",
+   "count": 149,
+   "translated": 0
+  },
+  {
+   "month": "2025-11",
+   "file": "tweets/2025-11.jsonl",
+   "count": 217,
+   "translated": 0
+  },
+  {
+   "month": "2025-12",
+   "file": "tweets/2025-12.jsonl",
+   "count": 267,
+   "translated": 0
+  },
+  {
+   "month": "2026-01",
+   "file": "tweets/2026-01.jsonl",
+   "count": 257,
+   "translated": 48
+  },
+  {
+   "month": "2026-02",
+   "file": "tweets/2026-02.jsonl",
+   "count": 295,
+   "translated": 295
+  },
+  {
+   "month": "2026-09",
+   "file": "tweets/2026-09.jsonl",
+   "count": 134,
+   "translated": 134
+  }
+ ]
+}

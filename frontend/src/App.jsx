@@ -88,7 +88,8 @@ export default function App() {
               <>
                 <span><b>{nf(stats.total)}</b> tweet</span>
                 <span><b>{nf(stats.translated)}</b> diterjemahkan</span>
-                <span>cek terakhir <b>{formatWibShort(stats.last_check)}</b></span>
+                <span>{stats.generated_at ? 'data per' : 'cek terakhir'}{' '}
+                  <b>{formatWibShort(stats.generated_at || stats.last_check)}</b></span>
               </>
             ) : (
               <span className="muted">memuat…</span>
@@ -130,8 +131,8 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <span>Ikizurai-Bu Tweet · proyek penggemar non-resmi · data dari arsip X publik</span>
-        <span>© プロジェクトイキヅライブ！</span>
+        <span>Ikizurai-Bu Tweet · proyek penggemar non-resmi · data dari arsip X publik (gsm-app.com)</span>
+        <span>terjemahan dibuat AI (bukan 100% akurat) · © プロジェクトイキヅライブ！</span>
       </footer>
     </div>
   )

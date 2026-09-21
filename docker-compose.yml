@@ -10,6 +10,7 @@ services:
       - "8097:8097"
     volumes:
       - ./data:/app/data
+      - ./dataset:/app/dataset
     logging:
       driver: json-file
       options:
