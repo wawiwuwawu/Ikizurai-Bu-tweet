@@ -10,10 +10,10 @@ const PAGE = 30
 export default function App() {
   const [members, setMembers] = useState([])
   const [stats, setStats] = useState(null)
-  const [filters, setFilters] = useState({ member: '', q: '', since: '', until: '', view: 'both' })
+  const [filters, setFilters] = useState({ member: '', q: '', since: '', until: '', view: 'both', order: 'desc' })
 
   const [tweets, setTweets] = useState([])
-  const [nextBefore, setNextBefore] = useState(null)
+  const [nextCursor, setNextCursor] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState(null)
@@ -21,7 +21,7 @@ export default function App() {
 
   const qDebounced = useDebounced(filters.q, 350)
   const memberMap = useMemo(() => Object.fromEntries(members.map((m) => [m.screen_name, m])), [members])
-  const filterKey = `${filters.member}|${qDebounced}|${filters.since}|${filters.until}`
+  const filterKey = `${filters.member}|${qDebounced}|${filters.since}|${filters.until}|${filters.order}`
 
   // ---- data awal (member + statistik)
   useEffect(() => {
@@ -39,25 +39,27 @@ export default function App() {
     setError(null)
     fetchTweets({
       member: filters.member, q: qDebounced, since: filters.since, until: filters.until,
-      limit: PAGE, signal: ac.signal,
+      order: filters.order, limit: PAGE, signal: ac.signal,
     })
-      .then((d) => { setTweets(d.items); setNextBefore(d.next_before); setLoading(false) })
+      .then((d) => { setTweets(d.items); setNextCursor(d.next_cursor); setLoading(false) })
       .catch((e) => { if (e.name !== 'AbortError') { setError(e.message); setLoading(false) } })
     return () => ac.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKey])
 
   const loadMore = useCallback(() => {
-    if (!nextBefore || loadingMore || loading) return
+    if (!nextCursor || loadingMore || loading) return
     setLoadingMore(true)
     fetchTweets({
       member: filters.member, q: qDebounced, since: filters.since, until: filters.until,
-      before: nextBefore, limit: PAGE,
+      order: filters.order,
+      ...(filters.order === 'asc' ? { after: nextCursor } : { before: nextCursor }),
+      limit: PAGE,
     })
-      .then((d) => { setTweets((t) => [...t, ...d.items]); setNextBefore(d.next_before) })
+      .then((d) => { setTweets((t) => [...t, ...d.items]); setNextCursor(d.next_cursor) })
       .catch((e) => setError(e.message))
       .finally(() => setLoadingMore(false))
-  }, [nextBefore, loadingMore, loading, filters.member, qDebounced, filters.since, filters.until])
+  }, [nextCursor, loadingMore, loading, filters.member, qDebounced, filters.since, filters.until, filters.order])
 
   // ---- infinite scroll
   const sentinel = useRef(null)
@@ -71,6 +73,11 @@ export default function App() {
 
   const setFilter = (patch) => setFilters((f) => ({ ...f, ...patch }))
   const hasFilter = Boolean(filters.member || filters.q || filters.since || filters.until)
+
+  // ganti urutan → kembali ke atas (biar kelihatan dari awal daftar)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [filters.order])
 
   return (
     <div className="page">
@@ -105,7 +112,7 @@ export default function App() {
         <Toolbar
           filters={filters}
           onChange={setFilter}
-          onClear={() => setFilters({ member: '', q: '', since: '', until: '', view: filters.view })}
+          onClear={() => setFilters({ member: '', q: '', since: '', until: '', view: filters.view, order: filters.order })}
           hasFilter={hasFilter}
         />
 
@@ -124,7 +131,7 @@ export default function App() {
               ))}
             </div>
             <div ref={sentinel} className="sentinel">
-              {loadingMore ? 'Memuat lagi…' : nextBefore ? '' : '— akhir arsip —'}
+              {loadingMore ? 'Memuat lagi…' : nextCursor ? '' : '— akhir arsip —'}
             </div>
           </>
         )}

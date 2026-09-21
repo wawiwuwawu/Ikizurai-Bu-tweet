@@ -90,10 +90,20 @@ def api_tweets(
     q: Optional[str] = Query(None, description="cari di teks JP & ID"),
     since: Optional[str] = Query(None, description="YYYY-MM-DD (inklusif)"),
     until: Optional[str] = Query(None, description="YYYY-MM-DD (inklusif)"),
-    before: Optional[str] = Query(None, description="kursor id_str (eksklusif)"),
+    before: Optional[str] = Query(None, description="kursor id_str (eksklusif) — untuk order=desc"),
+    after: Optional[str] = Query(None, description="kursor id_str (eksklusif) — untuk order=asc"),
+    order: str = Query("desc", pattern="^(desc|asc)$", description="desc = terbaru dulu, asc = terlama dulu"),
     limit: int = Query(30, ge=1, le=100),
 ) -> dict[str, Any]:
-    rows, next_before = dbm.query_tweets(
-        conn, member=member, q=q, since=since, until=until, before=before, limit=limit
+    rows, next_cursor = dbm.query_tweets(
+        conn, member=member, q=q, since=since, until=until,
+        before=before, after=after, limit=limit, order=order,
     )
-    return {"items": [_row_to_tweet(r) for r in rows], "next_before": next_before}
+    return {
+        "items": [_row_to_tweet(r) for r in rows],
+        "order": order,
+        "next_cursor": next_cursor,
+        # alias lama (kompatibilitas): next_before untuk desc, next_after untuk asc
+        "next_before": next_cursor if order == "desc" else None,
+        "next_after": next_cursor if order == "asc" else None,
+    }

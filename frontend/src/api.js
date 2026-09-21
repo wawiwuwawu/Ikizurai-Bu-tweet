@@ -41,26 +41,31 @@ async function staticIndex(signal) {
 }
 
 /** Versi static dari /api/tweets — filter + kursor di sisi klien.
- *  Memuat file bulan secara malas (dari terbaru ke terlama) dan berhenti
- *  begitu halaman terisi. Semantik kursor sama dengan backend:
- *  `before` = id_str eksklusif, next_before = id baris terakhir halaman.
+ *  Memuat file bulan secara malas dan berhenti begitu halaman terisi.
+ *  order="desc" (default) → terbaru dulu (bulan & isi dibalik, kursor `before`).
+ *  order="asc"            → terlama dulu (bulan & isi maju, kursor `after`).
  */
-async function staticTweets({ member, q, since, until, before, limit = 30, signal }) {
+async function staticTweets({ member, q, since, until, before, after, order = 'desc', limit = 30, signal }) {
   const idx = await staticIndex(signal)
-  const months = [...idx.months].reverse() // terbaru → terlama
+  const asc = order === 'asc'
+  const months = asc ? [...idx.months] : [...idx.months].reverse()
+  const cursor = asc ? after : before
   const ql = q ? q.toLowerCase() : null
   const untilBound = until ? (until.length === 10 ? `${until}T23:59:59Z` : until) : null
 
   const items = []
-  let skipping = Boolean(before)
+  let skipping = Boolean(cursor)
 
   for (const m of months) {
     if (items.length > limit) break
     const recs = await loadMonth(m.file, signal)
-    for (let i = recs.length - 1; i >= 0; i--) {
+    const start = asc ? 0 : recs.length - 1
+    const end = asc ? recs.length : -1
+    const step = asc ? 1 : -1
+    for (let i = start; asc ? i < end : i > end; i += step) {
       const r = recs[i]
       if (skipping) {
-        if (r.id_str === before) skipping = false
+        if (r.id_str === cursor) skipping = false
         continue
       }
       if (member && r.member !== member) continue
@@ -76,24 +81,26 @@ async function staticTweets({ member, q, since, until, before, limit = 30, signa
     }
   }
 
-  let next_before = null
+  let next_cursor = null
   if (items.length > limit) {
-    next_before = items[limit - 1].id_str
+    next_cursor = items[limit - 1].id_str
     items.length = limit
   }
-  return { items, next_before }
+  return { items, order, next_cursor }
 }
 
 // ---------------------------------------------------------------- publik
 
-export async function fetchTweets({ member, q, since, until, before, limit = 30, signal } = {}) {
-  if (STATIC) return staticTweets({ member, q, since, until, before, limit, signal })
+export async function fetchTweets({ member, q, since, until, before, after, order = 'desc', limit = 30, signal } = {}) {
+  if (STATIC) return staticTweets({ member, q, since, until, before, after, order, limit, signal })
   const p = new URLSearchParams()
   if (member) p.set('member', member)
   if (q) p.set('q', q)
   if (since) p.set('since', since)
   if (until) p.set('until', until)
   if (before) p.set('before', before)
+  if (after) p.set('after', after)
+  p.set('order', order)
   p.set('limit', String(limit))
   return get(`/api/tweets?${p.toString()}`, { signal })
 }

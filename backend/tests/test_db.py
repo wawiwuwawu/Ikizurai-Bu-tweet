@@ -182,3 +182,40 @@ def test_pagination_tidak_kehilangan_tweet(conn):
     assert seen == semua                     # lengkap, tanpa duplikat, urutan sama
     assert len(seen) == len(set(seen))
     assert len(seen) == len(items)
+
+
+def test_pagination_asc_lengkap(conn):
+    """Urutan terlama dulu: kursor `after` juga harus lengkap tanpa hilang/duplikat."""
+    items = _items()
+    dbm.upsert_tweets(conn, items)
+
+    limit = 4
+    seen: list[str] = []
+    after = None
+    for _ in range(50):
+        rows, after = dbm.query_tweets(conn, order="asc", after=after, limit=limit)
+        if not rows:
+            break
+        seen.extend(r["id_str"] for r in rows)
+        if after is None:
+            break
+
+    desc_all = [r["id_str"] for r in dbm.query_tweets(conn, limit=10_000)[0]]
+    assert seen == desc_all[::-1]            # kebalikan urutan desc, tanpa hilang
+    assert len(seen) == len(set(seen)) == len(items)
+
+
+def test_order_asc_dan_desc_konsisten(conn):
+    items = _items()
+    dbm.upsert_tweets(conn, items)
+
+    asc_rows, _ = dbm.query_tweets(conn, order="asc", limit=5)
+    desc_rows, _ = dbm.query_tweets(conn, order="desc", limit=5)
+
+    # halaman pertama asc = 5 tweet paling lama; desc = 5 paling baru
+    assert [r["id_str"] for r in asc_rows] != [r["id_str"] for r in desc_rows]
+    assert asc_rows[0]["created_at"] <= asc_rows[-1]["created_at"]
+    assert desc_rows[0]["created_at"] >= desc_rows[-1]["created_at"]
+    # asc pertama == desc terakhir (seluruh arsip)
+    desc_all, _ = dbm.query_tweets(conn, limit=10_000)
+    assert asc_rows[0]["id_str"] == desc_all[-1]["id_str"]

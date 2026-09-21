@@ -28,6 +28,19 @@ export default function Toolbar({ filters, onChange, onClear, hasFilter }) {
           </label>
         </div>
 
+        <div className="viewtoggle" role="group" aria-label="Urutan waktu">
+          <button type="button" className={filters.order === 'desc' ? 'on' : ''}
+                  title="Tweet terbaru di atas"
+                  onClick={() => onChange({ order: 'desc' })}>
+            🆕 Terbaru
+          </button>
+          <button type="button" className={filters.order === 'asc' ? 'on' : ''}
+                  title="Tweet paling lama di atas (dari awal arsip)"
+                  onClick={() => onChange({ order: 'asc' })}>
+            📜 Terlama
+          </button>
+        </div>
+
         <div className="viewtoggle" role="group" aria-label="Mode tampilan teks">
           {[
             ['id', '🇮🇩 ID'],

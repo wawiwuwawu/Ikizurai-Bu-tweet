@@ -82,3 +82,24 @@ def test_tweets_pagination_kursor(client):
     assert d1["next_before"]
     d2 = client.get("/api/tweets", params={"limit": 10, "before": d1["next_before"]}).json()
     assert all(t["id_str"] != d1["items"][0]["id_str"] for t in d2["items"])
+
+
+def test_tweets_order_asc(client):
+    """order=asc → terlama dulu, kursor next_cursor/next_after, next_before=None."""
+    d = client.get("/api/tweets", params={"limit": 10, "order": "asc"}).json()
+    times = [t["created_at"] for t in d["items"]]
+    assert times == sorted(times)                 # naik = terlama dulu
+    assert d["order"] == "asc"
+    assert d["next_before"] is None
+
+    desc = client.get("/api/tweets", params={"limit": 10}).json()
+    assert desc["items"][0]["id_str"] == d["items"][-1]["id_str"]  # kebalikan
+
+    # pagination: halaman 2 asc melanjutkan ke arah yang lebih baru
+    if d["next_cursor"]:
+        d2 = client.get("/api/tweets", params={"limit": 10, "order": "asc", "after": d["next_cursor"]}).json()
+        assert all(t["id_str"] != d["items"][-1]["id_str"] for t in d2["items"])
+
+
+def test_tweets_order_invalid_ditolak(client):
+    assert client.get("/api/tweets", params={"order": "ngawur"}).status_code == 422

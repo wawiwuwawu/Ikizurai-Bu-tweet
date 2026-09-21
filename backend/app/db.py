@@ -240,12 +240,18 @@ def query_tweets(
     since: Optional[str] = None,
     until: Optional[str] = None,
     before: Optional[str] = None,
+    after: Optional[str] = None,
     limit: int = 30,
+    order: str = "desc",
 ) -> tuple[list[sqlite3.Row], Optional[str]]:
-    """Ambil tweet terbaru dulu (untuk FE). `before` = id_str kursor (eksklusif).
+    """Ambil tweet untuk FE.
 
-    Kembalikan (rows, next_before). next_before = id_str baris terakhir bila masih ada.
+    order="desc" (default): terbaru dulu; kursor `before` = id_str (eksklusif, ke arah lama).
+    order="asc": terlama dulu; kursor `after` = id_str (eksklusif, ke arah baru).
+
+    Kembalikan (rows, next_cursor). next_cursor = id_str baris terakhir bila masih ada lagi.
     """
+    asc = str(order).lower() == "asc"
     where, args = [], []
     if member:
         where.append("member = ?")
@@ -260,22 +266,29 @@ def query_tweets(
     if until:
         where.append("created_at <= ?")
         args.append(until + "T23:59:59Z" if len(until) == 10 else until)
-    if before:
-        where.append("(created_at < (SELECT created_at FROM tweets WHERE id_str = ?) "
-                     "OR (created_at = (SELECT created_at FROM tweets WHERE id_str = ?) AND id_str < ?))")
-        args.extend([before, before, before])
+
+    cursor = after if asc else before
+    if cursor:
+        if asc:
+            where.append("(created_at > (SELECT created_at FROM tweets WHERE id_str = ?) "
+                         "OR (created_at = (SELECT created_at FROM tweets WHERE id_str = ?) AND id_str > ?))")
+        else:
+            where.append("(created_at < (SELECT created_at FROM tweets WHERE id_str = ?) "
+                         "OR (created_at = (SELECT created_at FROM tweets WHERE id_str = ?) AND id_str < ?))")
+        args.extend([cursor, cursor, cursor])
+
     sql = "SELECT * FROM tweets"
     if where:
         sql += " WHERE " + " AND ".join(where)
-    sql += " ORDER BY created_at DESC, id_str DESC LIMIT ?"
+    sql += " ORDER BY created_at ASC, id_str ASC LIMIT ?" if asc else " ORDER BY created_at DESC, id_str DESC LIMIT ?"
     args.append(limit + 1)
     rows = conn.execute(sql, args).fetchall()
     # Kursor = id baris TERAKHIR YANG DIKEMBALIKAN (eksklusif), bukan baris intip.
     # Kalau pakai rows[-1] (baris ke-limit+1), tweet itu akan hilang di halaman berikutnya.
     has_more = len(rows) > limit
     rows = rows[:limit]
-    next_before = rows[-1]["id_str"] if (has_more and rows) else None
-    return rows, next_before
+    next_cursor = rows[-1]["id_str"] if (has_more and rows) else None
+    return rows, next_cursor
 
 
 def stats(conn: sqlite3.Connection) -> dict[str, Any]:

@@ -36,7 +36,7 @@ Bot + website arsip untuk tweet 10 member **イキヅライブ！LOVELIVE!BLUEBI
   🐦 IkizuLive X Archive • 14/03/2025 7:56 PM
   ```
   Warna embed = warna resmi karakter, avatar member, link ke tweet asli di judul + author.
-- **🖥️ Web viewer** — React satu halaman: filter member, pencarian (JP & ID), rentang tanggal, toggle ID/JP/JP+ID, infinite scroll.
+- **🖥️ Web viewer** — React satu halaman: filter member, pencarian (JP & ID), rentang tanggal, toggle ID/JP/JP+ID, **urutan Terbaru ⇄ Terlama**, infinite scroll.
 - **🐳 Docker** — satu container (backend + worker + frontend build).
 
 ## 🏗 Arsitektur
@@ -95,6 +95,8 @@ docker exec ikizurai-bu-tweet python -m app.worker --export   # manual
 ```
 
 > Commit otomatis: `ops/publish.sh` hanya membuat commit bila isi dataset berubah (diff-friendly, tanpa commit kosong).
+> Dijalankan cron tiap 15 menit lewat `ops/publish-when-complete.sh` — skrip itu menunggu sampai backfill
+> translasi tuntas (translated == total) sebelum publish pertama, lalu menjaga mirror tetap segar.
 
 ## 🚀 Quick Start (Docker)
 

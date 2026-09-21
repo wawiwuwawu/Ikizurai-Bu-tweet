@@ -33,5 +33,7 @@ jobs:
           node-version: "22"
       - name: Install deps
         run: npm install --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
       - name: Build
         run: npm run build
