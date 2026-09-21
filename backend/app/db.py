@@ -161,17 +161,26 @@ def mark_skipped(conn: sqlite3.Connection, ids: Iterable[str]) -> int:
 
 # ---------------------------------------------------------------- queue translasi
 
-def translation_queue(conn: sqlite3.Connection, limit: int, max_attempts: int) -> list[sqlite3.Row]:
+def translation_queue(
+    conn: sqlite3.Connection,
+    limit: int,
+    max_attempts: int,
+    only_pending: bool = False,
+) -> list[sqlite3.Row]:
     """Tweet yang belum diterjemahkan.
 
     Prioritas: (1) yang menunggu notifikasi (notify_state='pending') lebih dulu,
     (2) lalu backfill — terbaru dulu. Hormati next_retry_at & max_attempts.
+    `only_pending=True` → hanya tweet yang menunggu notifikasi (dipakai agar
+    notifikasi tweet baru tidak menunggu fase backfill yang panjang).
     """
+    pending_cond = "AND notify_state = 'pending'" if only_pending else ""
     return conn.execute(
-        """SELECT id_str, text, member, created_at FROM tweets
+        f"""SELECT id_str, text, member, created_at, notify_state FROM tweets
            WHERE text_id IS NULL
              AND translate_attempts < ?
              AND (next_retry_at IS NULL OR next_retry_at <= ?)
+             {pending_cond}
            ORDER BY (notify_state = 'pending') DESC, created_at DESC
            LIMIT ?""",
         (max_attempts, now_utc(), limit),

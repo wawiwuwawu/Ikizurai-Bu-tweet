@@ -138,6 +138,20 @@ def test_query_tweets_filter_dan_kursor(conn):
     assert [r["id_str"] for r in found] == [items[1]["id_str"]]
 
 
+def test_translation_queue_only_pending(conn):
+    """only_pending=True → fase notifikasi tidak menunggu backfill panjang."""
+    items = _items()
+    dbm.upsert_tweets(conn, items)
+    ids = [i["id_str"] for i in items]
+    dbm.mark_skipped(conn, ids[:2])  # 2 baris jadi backfill (bukan pending)
+
+    semua = [r["id_str"] for r in dbm.translation_queue(conn, 10, 5)]
+    assert set(semua) == set(ids)                              # keduanya ikut
+
+    hanya_pending = [r["id_str"] for r in dbm.translation_queue(conn, 10, 5, only_pending=True)]
+    assert hanya_pending == [ids[2]]                            # hanya yang menunggu notif
+
+
 def test_meta_roundtrip(conn):
     dbm.set_meta(conn, "baseline_done", "true")
     assert dbm.get_meta(conn, "baseline_done") == "true"

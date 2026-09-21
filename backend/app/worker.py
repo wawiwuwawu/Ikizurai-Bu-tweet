@@ -101,12 +101,17 @@ class Worker:
         return fresh
 
     # ------------------------------------------------------------ translate
-    def translate_cycle(self) -> int:
+    def translate_cycle(self, only_pending: bool = False, max_batches: Optional[int] = None) -> int:
+        """Terjemahkan antrean. `only_pending` = hanya yang menunggu notifikasi."""
         if self.s.translate_paused:
             return 0
         done_total = 0
-        for _ in range(self.s.translate_batch_per_cycle):
-            rows = dbm.translation_queue(self.conn, self.s.translate_batch_size, self.s.translate_max_attempts)
+        limit = max_batches if max_batches is not None else self.s.translate_batch_per_cycle
+        for _ in range(limit):
+            rows = dbm.translation_queue(
+                self.conn, self.s.translate_batch_size, self.s.translate_max_attempts,
+                only_pending=only_pending,
+            )
             if not rows:
                 break
             tweets = [{"id_str": r["id_str"], "text": r["text"]} for r in rows]
@@ -192,9 +197,19 @@ class Worker:
             self.backfill()
         else:
             self.fetch_new()
-        translated = self.translate_cycle()
+
+        # 1) prioritaskan tweet yang menunggu notifikasi → kirim cepat
+        translated_priority = self.translate_cycle(only_pending=True, max_batches=4)
         notified = self.notify_cycle()
-        return {"translated": translated, "notified": notified, "stats": dbm.stats(self.conn)}
+        # 2) lanjutkan backfill translasi arsip (tidak memblokir notifikasi berikutnya)
+        translated_backfill = self.translate_cycle(only_pending=False)
+
+        return {
+            "translated_priority": translated_priority,
+            "translated_backfill": translated_backfill,
+            "notified": notified,
+            "stats": dbm.stats(self.conn),
+        }
 
     def run_forever(self) -> None:
         log.info("Worker start (interval %d menit)", self.s.check_interval_minutes)
@@ -247,6 +262,8 @@ def _cli() -> int:
         ).rowcount
         conn.commit()
         print(f"{n} terjemahan direset — worker akan menerjemahkan ulang dengan prompt terbaru.")
+        print("TIP: idealnya worker berhenti dulu (docker compose stop) saat reset, "
+              "supaya hitungan siklus yang sedang jalan tidak tercampur.")
         return 0
     if args.backfill:
         worker.backfill()
