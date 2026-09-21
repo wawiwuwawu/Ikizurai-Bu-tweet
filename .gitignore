@@ -26,3 +26,6 @@ data/
 
 # riset mentah (HTML/wiki dump)
 research/
+
+# artefak dev sementara
+backend/tools/_*

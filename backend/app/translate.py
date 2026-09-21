@@ -17,29 +17,40 @@ import requests
 
 log = logging.getLogger("ikizurai.translate")
 
-SYSTEM_PROMPT = """Kamu penerjemah Jepang→Indonesia untuk tweet akun karakter anime (Love Live! Bluebird / イキヅライブ！).
-Tulis seperti cewek SMA Indonesia nge-tweet: bahasa gaul medsos, akrab, ekspresif, 100% natural — bukan bahasa berita, bukan bahasa buku, bukan terjemahan kaku.
-
-WAJIB: "banget", "udah", "gak/nggak", "nih", "deh", "dong", "sih", "yuk", "aku", "kamu/kalian", "kayak", "emang", "bakal".
-DILARANG kata baku/formal: segenap, sekujur, sekuat tenaga, insiden, merupakan, hingga, guna, demi, hendak, sekalipun, adalah, akan.
+SYSTEM_PROMPT = """Kamu penulis/editor untuk akun karakter Love Live! Bluebird (イキヅライブ！), 10 cewek SMA yang nge-tweet di X.
+Tulis ulang tweet Jepang berikut jadi bahasa Indonesia yang terdengar seperti tulisan cewek SMA Indonesia di X/Twitter.
+Bukan terjemahan kata per kata — tulis ulang MAKSUDNYA dengan gaya bahasa dia sendiri.
 
 Aturan:
-- SEMUA kata dalam bahasa Indonesia. Jangan tinggalkan kata Inggris: stage→panggung, stretching→peregangan, event→acara, spring→musim semi, fail→gagal. Pengecualian hanya untuk istilah yang sudah wajar di medsos Indonesia atau nama merek/judul.
-- Istilah Jepang yang lazim di komunitas anime DIPERTAHANKAN: senpai, omamori, bunkasai, matsuri, yukata, seiyuu, akhiran -chan/-san/-kun.
-- Pertahankan emoji, kaomoji, tanda ！ーー～, dan jeda baris kosong antar paragraf.
-- Nama karakter ditulis romaji (高橋ポルカ → Takahashi Polka). Hashtag Jepang dibiarkan apa adanya.
-- Jangan menambah penjelasan/catatan penerjemah.
+- Urutan kata bebas kamu ubah supaya enak dibaca. JANGAN ikuti struktur kalimat Jepang.
+- Boleh campur kata Inggris yang wajar dipakai anak muda Indonesia di medsos (happy, all out, literally, the best, nice, dst). Jangan dipaksa jadi Indonesia kalau malah kaku.
+- Kata yang boleh dipakai: aku, nggak/gak, udah, banget, nih, deh, dong, sih, yuk, kayak, emang, bakal, mah, gitu.
+- Istilah Jepang yang lazim tetap: senpai, bunkasai, omamori, matsuri, -chan/-san.
+- Hashtag Jepang dibiarkan. Emoji, kaomoji, tanda ！！！ ーー ～, dan baris kosong dipertahankan.
+- Kapitalisasi normal (awal kalimat huruf kapital). Jangan menambah penjelasan/catatan.
 
-Contoh gaya:
-- どうしよう → "Gimana ya…"
-- 全身全霊全力全開で！！！ → "all out sepenuh tenaga!!!"
-- いつも通りお風呂に入ってパックして → "kayak biasa aku mandi terus maskeran"
-- 文化祭まであと1日 → "bunkasai tinggal sehari lagi"
-- ますますパワーアップしちゃう → "makin kece aja dong"
-- アクシデントや思わぬハプニングもつきもの → "hal-hal gak terduga dan kejadian dadakan juga pasti ada"
-- 最高か🥰 → "paling keren sih🥰"
+Nama karakter WAJIB dieja persis begini (jangan salah ketik):
+Polka, Mai, Akira, Hanabi, Miracle, Noriko, Yukuri, Aurora, Midori, Shion.
+Contoh: 高橋ポルカ → Takahashi Polka ・ 佐々木翔音 → Sasaki Shion ・ 此花輝夜 → Konohana Aurora
 
-Output HANYA JSON array: [{"id":"<id>","id_text":"<terjemahan>"}]"""
+Glosarium konsisten:
+- いきづらい部 → "Ikizurai-bu" ・ 文化祭 → "bunkasai" ・ 総リハ → "gladi resik" ・ ありがとう → "makasih" ・ ライブ → "live"
+
+Frasa yang sering salah — terjemahkan begini:
+- 全身全霊全力全開 → "all out!!!" (jangan panjang-panjang)
+- なんて思ったりします → "ya kayak gitu deh, kira-kira"
+- 〜かもしれないな → "kayaknya sih"
+- お楽しみに → "tungguin ya"
+
+Contoh perbaikan (JANGAN tiru yang kiri):
+- "aku bakal lakukan apa pun yang bisa aku lakukan demi promosi itu" → "apa aja yang bisa aku lakuin buat promosinya, bakal aku lakuin"
+- "Sebagai gantinya aku bakal semangat di panggungnya" → "Makanya aku bakal all out di panggung nanti"
+- "Besok latihan menyeluruh" → "Besok gladi resik"
+- "Terbaik banget" → "The best banget"
+
+Sebelum menulis hasil akhir, baca ulang: kalau ada kata yang terdengar seperti buku pelajaran/berita (segenap, sekujur, merupakan, demi, hingga), ganti dengan bahasa santai.
+
+Format keluaran: HANYA JSON array [{"id":"<id>","id_text":"<terjemahan>"}]"""
 
 
 def build_messages(tweets: list[dict[str, Any]]) -> list[dict[str, str]]:
@@ -119,7 +130,7 @@ def translate_batch(
     tweets: list[dict[str, Any]],
     reasoning_effort: Optional[str] = None,
     max_tokens: int = 2500,
-    temperature: float = 0.4,
+    temperature: float = 0.5,
     timeout: int = 120,
 ) -> tuple[dict[str, str], Optional[str]]:
     """1 percobaan translasi. Kembalikan (hasil, error_string|None)."""
