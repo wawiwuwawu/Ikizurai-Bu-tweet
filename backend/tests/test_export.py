@@ -130,3 +130,43 @@ def test_export_menghitung_translasi(seeded, tmp_path):
                 assert json.loads(line)["text_id"] == "Halo dunia"
                 found = True
     assert found
+
+
+def test_export_tidak_menyentuh_metadata_kalau_tidak_ada_perubahan(seeded, tmp_path):
+    """Regresi: timestamp generated_at tidak boleh bikin diff/commit palsu.
+
+    Kalau ekspor ulang menulis stats.json/index.json hanya karena jam berubah,
+    cron publish akan membuat commit kosong setiap kali jalan.
+    """
+    out = tmp_path / "dataset"
+    ex.export_all(seeded, out)
+
+    old = "2020-01-01T00:00:00Z"   # tandai timestamp lama
+    for name in ("stats.json", "index.json"):
+        p = out / name
+        doc = json.loads(p.read_text())
+        doc["generated_at"] = old
+        p.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n")
+
+    result = ex.export_all(seeded, out)
+
+    assert result["files_changed"] == 0
+    assert json.loads((out / "stats.json").read_text())["generated_at"] == old
+    assert json.loads((out / "index.json").read_text())["generated_at"] == old
+
+
+def test_export_menyegarkan_metadata_saat_ada_data_baru(seeded, tmp_path):
+    out = tmp_path / "dataset"
+    ex.export_all(seeded, out)
+
+    row = seeded.execute("SELECT id_str FROM tweets LIMIT 1").fetchone()
+    seeded.execute("UPDATE tweets SET text_id = 'Halo dunia' WHERE id_str = ?", (row["id_str"],))
+    seeded.commit()
+
+    result = ex.export_all(seeded, out)
+
+    assert result["files_changed"] > 0
+    assert result["translated"] == 1
+    stats = json.loads((out / "stats.json").read_text())
+    assert stats["translated"] == 1 and stats["generated_at"]
+    assert set(stats) == {"total", "translated", "oldest", "newest", "generated_at", "source"}

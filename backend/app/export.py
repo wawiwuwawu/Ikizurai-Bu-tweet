@@ -121,25 +121,43 @@ def export_all(conn: sqlite3.Connection, out_dir: str | Path) -> dict[str, Any]:
             members.append({**member_info(screen), "count": c["n"],
                             "avatar": c["avatar"], "last_at": c["last_at"]})
     members.sort(key=lambda m: -m["count"])
-    changed += _atomic_write(out / "members.json",
-                             json.dumps(members, ensure_ascii=False, indent=1) + "\n")
+    if _atomic_write(out / "members.json",
+                     json.dumps(members, ensure_ascii=False, indent=1) + "\n"):
+        changed += 1
 
     # --- stats.json + index.json
+    # Ditulis bila: (a) ada perubahan data nyata, ATAU (b) format berkas lama
+    # (migrasi skema). Kalau tidak, berkas dibiarkan supaya timestamp
+    # (generated_at) tidak menghasilkan diff/commit palsu setiap siklus.
     st = dbm.stats(conn)
-    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    stats_doc = {**st, "generated_at": generated_at,
-                 "source": "https://gsm-app.com/lovelive/ikizulive-x-archive/"}
-    changed += _atomic_write(out / "stats.json",
-                             json.dumps(stats_doc, ensure_ascii=False, indent=1) + "\n")
+    expected_stats = {"total", "translated", "oldest", "newest", "generated_at", "source"}
+    metadata_ok = False
+    try:
+        cur_stats = json.loads((out / "stats.json").read_text(encoding="utf-8"))
+        metadata_ok = set(cur_stats) == expected_stats and (out / "index.json").exists()
+    except (OSError, ValueError):
+        metadata_ok = False
 
-    index_doc = {
-        "generated_at": generated_at,
-        "total": st["total"],
-        "translated": st["translated"],
-        "months": months_manifest,
-    }
-    changed += _atomic_write(out / "index.json",
-                             json.dumps(index_doc, ensure_ascii=False, indent=1) + "\n")
+    if changed or not metadata_ok:
+        generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        stats_doc = {
+            "total": st["total"],
+            "translated": st["translated"],
+            "oldest": st["oldest"],
+            "newest": st["newest"],
+            "generated_at": generated_at,
+            "source": "https://gsm-app.com/lovelive/ikizulive-x-archive/",
+        }
+        changed += _atomic_write(out / "stats.json",
+                                 json.dumps(stats_doc, ensure_ascii=False, indent=1) + "\n")
+        index_doc = {
+            "generated_at": generated_at,
+            "total": st["total"],
+            "translated": st["translated"],
+            "months": months_manifest,
+        }
+        changed += _atomic_write(out / "index.json",
+                                 json.dumps(index_doc, ensure_ascii=False, indent=1) + "\n")
 
     return {
         "out_dir": str(out),
@@ -147,7 +165,6 @@ def export_all(conn: sqlite3.Connection, out_dir: str | Path) -> dict[str, Any]:
         "months": len(months_manifest),
         "translated": st["translated"],
         "files_changed": changed,
-        "generated_at": generated_at,
     }
 
 
