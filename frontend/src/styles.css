@@ -146,3 +146,71 @@ a { color: var(--blue); }
   .dates input { width: 100%; }
   .avatar { width: 40px; height: 40px; }
 }
+
+/* ---------------------------------------------------------------- penanda baca */
+.card[data-id] { scroll-margin-top: 12px; }
+
+/* tombol 🔖 duduk di footer, ruangnya selalu direservasi (width tetap) supaya
+   tata letak kartu tidak bergeser saat kursor lewat; isinya transparan sampai
+   kartu di-hover (atau tweet-nya jadi penanda) */
+.mark {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  flex: 0 0 auto; width: 22px; height: 22px; overflow: hidden;
+  border: 1px solid transparent; background: transparent; color: var(--muted);
+  border-radius: 999px; padding: 0; font: inherit; font-size: 11.5px; line-height: 1;
+  cursor: pointer; opacity: 0;
+  transition: color .15s, background .15s, border-color .15s, opacity .15s;
+}
+.mark .mark-ico { font-size: 12.5px; filter: grayscale(1); opacity: .6; transition: filter .15s, opacity .15s; flex: 0 0 auto; }
+.mark .mark-txt { display: none; white-space: nowrap; }
+.card:hover .mark, .mark:focus-visible, .mark.on {
+  opacity: 1; color: var(--blue-dark); background: #eef6fd; border-color: #cfe3f4;
+}
+.card:hover .mark .mark-ico, .mark:focus-visible .mark-ico, .mark.on .mark-ico { filter: none; opacity: 1; }
+/* tweet penanda: tombol melebar jadi label + kartu diberi cincin biru */
+.mark.on {
+  width: auto; height: auto; padding: 3px 8px; font-weight: 600;
+  background: #e6f2fd; border-color: #b9d9f2;
+}
+.mark.on .mark-txt { display: inline; }
+.card.marked { box-shadow: 0 0 0 2px #b9d9f2, var(--shadow); }
+.mark .mark-ico { font-size: 12.5px; filter: grayscale(1); opacity: .6; transition: filter .15s, opacity .15s; }
+.mark .mark-txt { display: none; }
+.card:hover .mark, .mark:focus-visible, .mark.on {
+  opacity: 1; pointer-events: auto; color: var(--blue-dark);
+  background: #eef6fd; border-color: #cfe3f4;
+}
+.card:hover .mark .mark-ico, .mark:focus-visible .mark-ico, .mark.on .mark-ico { filter: none; opacity: 1; }
+.mark.on { font-weight: 600; background: #e6f2fd; border-color: #b9d9f2; }
+.mark.on .mark-txt { display: inline; }
+.card.marked { box-shadow: 0 0 0 2px #b9d9f2, var(--shadow); }
+
+/* layar sentuh: tidak ada hover → tombol selalu kelihatan (redup) */
+@media (hover: none) {
+  .mark { opacity: .75; pointer-events: auto; }
+}
+
+/* chip "kembali ke penanda" — hanya saat pengguna jauh dari tweet penanda */
+.bm-bar {
+  position: fixed; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 20;
+  display: flex; align-items: stretch; gap: 6px;
+  background: var(--card); border: 1px solid #b9d9f2; border-radius: 999px;
+  padding: 5px 5px 5px 6px; box-shadow: 0 4px 16px -4px rgba(20, 40, 70, .3);
+}
+.bm-go {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 0; background: transparent; color: var(--blue-dark);
+  border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.bm-go:hover { background: #e6f2fd; }
+.bm-ico { font-size: 13px; }
+.bm-when { font-style: normal; font-weight: 400; color: var(--muted); font-size: 11.5px; }
+.bm-clear {
+  border: 0; background: #f5f7fa; color: var(--muted);
+  border-radius: 999px; width: 26px; cursor: pointer; font: inherit; font-size: 12px;
+}
+.bm-clear:hover { background: #fdecea; color: #b3261e; }
+
+@media (max-width: 560px) {
+  .bm-when { display: none; }
+}
