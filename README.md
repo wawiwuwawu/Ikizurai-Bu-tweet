@@ -37,6 +37,7 @@ Bot + website arsip untuk tweet 10 member **イキヅライブ！LOVELIVE!BLUEBI
   ```
   Warna embed = warna resmi karakter, avatar member, link ke tweet asli di judul + author.
 - **🖥️ Web viewer** — React satu halaman: filter member, pencarian (JP & ID), rentang tanggal, toggle ID/JP/JP+ID, **urutan Terbaru ⇄ Terlama**, infinite scroll.
+- **🔖 Penanda baca** — tombol 🔖 di tiap kartu tweet untuk menandai posisi baca. Tutup lalu buka browser lagi → langsung kembali ke tweet penanda (± 1 halaman konteks, filter/urutan ikut dipulihkan). Menandai ulang menimpa penanda lama; chip "Kembali ke penanda" muncul kalau kamu jauh dari posisi itu. Disimpan di `localStorage`, tanpa akun, jalan di mode server maupun GitHub Pages.
 - **🐳 Docker** — satu container (backend + worker + frontend build).
 
 ## 🏗 Arsitektur
@@ -157,7 +158,13 @@ uv venv .venv && uv pip install -p .venv/bin/python -r requirements.txt
 # frontend (dev server dengan proxy ke :8097)
 cd frontend
 npm install && npm run dev                # http://localhost:5173
+npm run test                              # uji fitur penanda baca (mode static/GitHub Pages)
 ```
+
+> **Uji frontend** (`npm run test`) menjalankan aplikasi di jsdom terhadap dataset
+> asli di `dataset/` — tanpa browser dan tanpa backend. Tidak perlu install Chrome.
+> `npm run test:api` menguji mode server; jalankan stub backend lebih dulu:
+> `python3 apistub.py /tmp/api-test.db 8099` (menjalankan SQL `query_tweets` yang sama).
 
 ## 📚 Dokumentasi
 
